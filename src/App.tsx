@@ -1,0 +1,146 @@
+import { useEffect, useMemo, useState } from 'react'
+import {
+  ChartPie,
+  Factory,
+  LayoutDashboard,
+  Settings,
+  ShieldCheck,
+  Ship,
+  Truck,
+  UsersRound,
+  Warehouse,
+} from 'lucide-react'
+import { AppShell } from './components/AppShell'
+import type { NavItem } from './components/Sidebar'
+import { orderStages, type OrderStatus, type Role, type ScreenId } from './data/mock'
+import { appPath, parseAppRoute } from './lib/routes'
+import { copy, type Language } from './lib/i18n'
+import { AgentsDistributionCenters } from './screens/AgentsDistributionCenters'
+import { CommercialReports } from './screens/CommercialReports'
+import { DispatchOtp } from './screens/DispatchOtp'
+import { ExecutiveDashboard } from './screens/ExecutiveDashboard'
+import { MillingOperations } from './screens/MillingOperations'
+import { OrdersApprovalWorkflow } from './screens/OrdersApprovalWorkflow'
+import { SettingsRbac } from './screens/SettingsRbac'
+import { VesselSiloIntake } from './screens/VesselSiloIntake'
+import { WarehouseInventory } from './screens/WarehouseInventory'
+
+function App() {
+  const initialRoute = parseAppRoute(window.location.pathname)
+  const [activeScreen, setActiveScreen] = useState<ScreenId>(initialRoute.screen)
+  const [language, setLanguage] = useState<Language>(initialRoute.language)
+  const [role, setRole] = useState<Role>('CEO')
+  const [workflowStatus, setWorkflowStatus] = useState<OrderStatus>('Accountant Approved')
+  const [otpVerified, setOtpVerified] = useState(false)
+
+  const navItems = useMemo<NavItem[]>(
+    () => [
+      { id: 'dashboard', label: copy[language].nav.dashboard, icon: LayoutDashboard },
+      { id: 'intake', label: copy[language].nav.intake, icon: Ship },
+      { id: 'milling', label: copy[language].nav.milling, icon: Factory },
+      { id: 'warehouse', label: copy[language].nav.warehouse, icon: Warehouse },
+      { id: 'orders', label: copy[language].nav.orders, icon: ShieldCheck },
+      { id: 'dispatch', label: copy[language].nav.dispatch, icon: Truck },
+      { id: 'agents', label: copy[language].nav.agents, icon: UsersRound },
+      { id: 'reports', label: copy[language].nav.reports, icon: ChartPie },
+      { id: 'settings', label: copy[language].nav.settings, icon: Settings },
+    ],
+    [language],
+  )
+
+  useEffect(() => {
+    const nextPath = appPath(language, activeScreen)
+    if (window.location.pathname !== nextPath) {
+      window.history.replaceState(null, '', nextPath)
+    }
+  }, [activeScreen, language])
+
+  useEffect(() => {
+    document.documentElement.lang = language
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr'
+    window.localStorage.setItem('wheatflow-language', language)
+  }, [language])
+
+  useEffect(() => {
+    function handlePopState() {
+      const nextRoute = parseAppRoute(window.location.pathname)
+      setActiveScreen(nextRoute.screen)
+      setLanguage(nextRoute.language)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
+  function navigate(screen: ScreenId, nextLanguage = language) {
+    setActiveScreen(screen)
+    setLanguage(nextLanguage)
+    window.history.pushState(null, '', appPath(nextLanguage, screen))
+  }
+
+  function handleLanguageChange(nextLanguage: Language) {
+    navigate(activeScreen, nextLanguage)
+  }
+
+  function advanceWorkflow() {
+    const currentIndex = orderStages.indexOf(workflowStatus)
+    const next = orderStages[Math.min(currentIndex + 1, orderStages.length - 1)]
+    setWorkflowStatus(next)
+    if (next !== 'OTP Verified') {
+      setOtpVerified(false)
+    }
+  }
+
+  function handleOtpVerified() {
+    setOtpVerified(true)
+    setWorkflowStatus('OTP Verified')
+  }
+
+  const screen = (() => {
+    switch (activeScreen) {
+      case 'dashboard':
+        return <ExecutiveDashboard workflowStatus={workflowStatus} onOpenScreen={navigate} />
+      case 'intake':
+        return <VesselSiloIntake />
+      case 'milling':
+        return <MillingOperations />
+      case 'warehouse':
+        return <WarehouseInventory />
+      case 'orders':
+        return <OrdersApprovalWorkflow workflowStatus={workflowStatus} onAdvance={advanceWorkflow} />
+      case 'dispatch':
+        return (
+          <DispatchOtp
+            workflowStatus={workflowStatus}
+            otpVerified={otpVerified}
+            onVerifyOtp={handleOtpVerified}
+            onSetStatus={setWorkflowStatus}
+          />
+        )
+      case 'agents':
+        return <AgentsDistributionCenters />
+      case 'reports':
+        return <CommercialReports />
+      case 'settings':
+        return <SettingsRbac role={role} onRoleChange={setRole} />
+      default:
+        return null
+    }
+  })()
+
+  return (
+    <AppShell
+      items={navItems}
+      activeScreen={activeScreen}
+      onScreenChange={navigate}
+      role={role}
+      onRoleChange={setRole}
+      language={language}
+      onLanguageChange={handleLanguageChange}
+    >
+      {screen}
+    </AppShell>
+  )
+}
+
+export default App
