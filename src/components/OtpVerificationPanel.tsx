@@ -7,14 +7,22 @@ import { ActionButton, IconTile, Panel, SectionHeader } from './design-system'
 export function OtpVerificationPanel({
   verified,
   onVerify,
+  disabled = false,
+  disabledReason,
 }: {
   verified: boolean
   onVerify: () => void
+  disabled?: boolean
+  disabledReason?: string
 }) {
   const [otp, setOtp] = useState('482916')
   const [error, setError] = useState('')
 
   function handleVerify() {
+    if (disabled) {
+      return
+    }
+
     if (otp.trim() === '482916') {
       setError('')
       onVerify()
@@ -48,17 +56,19 @@ export function OtpVerificationPanel({
           </span>
           <input
             value={otp}
+            disabled={disabled}
             onChange={(event) => setOtp(event.target.value)}
-            className="mt-2 h-10 w-full rounded-[8px] border border-slate-200 bg-white px-4 text-base font-semibold tracking-[0.22em] text-slate-950 outline-none transition focus:border-blue-400"
+            className="mt-2 h-10 w-full rounded-[8px] border border-slate-200 bg-white px-4 text-base font-semibold tracking-[0.22em] text-slate-950 outline-none transition focus:border-blue-400 disabled:bg-slate-50 disabled:text-slate-400"
           />
         </label>
-        <ActionButton onClick={handleVerify} className="mt-6 h-10">
+        <ActionButton onClick={handleVerify} className="mt-6 h-10" disabled={disabled}>
           <ScanLine className="size-4" />
           Verify OTP
         </ActionButton>
       </div>
 
       {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+      {disabled && disabledReason ? <p className="mt-3 text-sm text-slate-500">{disabledReason}</p> : null}
 
       {verified ? (
         <motion.div

@@ -1,16 +1,18 @@
 import { Bell, CalendarDays, Search, UserCircle2 } from 'lucide-react'
-import { roles, type Role } from '../data/mock'
+import { roles, type Role, type RoleProfile } from '../data/mock'
 import { copy, languageLabels, type Language } from '../lib/i18n'
 import { cn } from '../lib/utils'
 
 export function Topbar({
   role,
   onRoleChange,
+  profile,
   language,
   onLanguageChange,
 }: {
   role: Role
   onRoleChange: (role: Role) => void
+  profile: RoleProfile
   language: Language
   onLanguageChange: (language: Language) => void
 }) {
@@ -32,7 +34,7 @@ export function Topbar({
               )}
             />
             <input
-              placeholder={text.searchPlaceholder}
+              placeholder={`${text.searchPlaceholder.replace('...', '')} in ${profile.dataScope.toLowerCase()}...`}
               className={cn(
                 'h-10 w-full rounded-[8px] border border-slate-200 bg-white text-sm text-slate-800 outline-none shadow-sm transition placeholder:text-slate-400 focus:border-blue-400',
                 language === 'ar' ? 'pl-3 pr-10 text-right' : 'pl-10 pr-3',
@@ -84,8 +86,8 @@ export function Topbar({
         <div className="hidden items-center gap-2 rounded-[8px] border border-slate-200 bg-white px-3 py-2 shadow-sm lg:flex">
           <UserCircle2 className="size-5 text-slate-500" />
           <div>
-            <p className="text-xs font-semibold text-slate-900">Mustafa Demo</p>
-            <p className="text-[11px] text-slate-500">{text.executiveSession}</p>
+            <p className="text-xs font-semibold text-slate-900">{profile.sessionUser}</p>
+            <p className="text-[11px] text-slate-500">{profile.sessionLabel || text.executiveSession}</p>
           </div>
         </div>
       </div>

@@ -116,6 +116,336 @@ export const executiveKpis = [
   },
 ]
 
+export type RoleProfile = {
+  role: Role
+  sessionUser: string
+  sessionLabel: string
+  focus: string
+  dataScope: string
+  landingScreen: ScreenId
+  accessibleScreens: ScreenId[]
+  demoWorkflowStatus: OrderStatus
+  dashboardTitle: string
+  dashboardDescription: string
+  dashboardKpis: typeof executiveKpis
+  dashboardActions: Array<[string, string, string]>
+  approvalNote: string
+  actionLabel: string
+  actionHelp: string
+  canAdvanceWorkflow: boolean
+  canVerifyOtp: boolean
+  canSetDispatchStatus: boolean
+  ownedAgent?: string
+}
+
+const allScreens: ScreenId[] = [
+  'dashboard',
+  'intake',
+  'milling',
+  'warehouse',
+  'orders',
+  'dispatch',
+  'agents',
+  'reports',
+  'settings',
+]
+
+export const roleProfiles: Record<Role, RoleProfile> = {
+  CEO: {
+    role: 'CEO',
+    sessionUser: 'Mustafa Demo',
+    sessionLabel: 'Executive session',
+    focus: 'Full estate visibility, risk, approvals, and dispatch performance',
+    dataScope: 'All operating companies and regions',
+    landingScreen: 'dashboard',
+    accessibleScreens: allScreens,
+    demoWorkflowStatus: 'Accountant Approved',
+    dashboardTitle: 'Executive Dashboard',
+    dashboardDescription: 'Real-time overview of wheat-to-flour supply chain operations across Sudan.',
+    dashboardKpis: executiveKpis,
+    dashboardActions: [
+      ['Decision needed', '9 approvals', 'Average age 42 minutes'],
+      ['Operational risk', '3 alerts', 'Gedaref stock below target'],
+      ['Cash exposure', '$361k', 'Credit checks in release queue'],
+    ],
+    approvalNote: 'Commercial controls cleared for release generation.',
+    actionLabel: 'Advance demo order',
+    actionHelp: 'CEO override can move the order through any demo gate.',
+    canAdvanceWorkflow: true,
+    canVerifyOtp: true,
+    canSetDispatchStatus: true,
+  },
+  'Sales Manager': {
+    role: 'Sales Manager',
+    sessionUser: 'Hiba Sales',
+    sessionLabel: 'Sales control',
+    focus: 'Agent demand, regional allocation, and the sales approval gate',
+    dataScope: 'Agent orders, distribution centers, and sales reports',
+    landingScreen: 'orders',
+    accessibleScreens: ['dashboard', 'orders', 'agents', 'reports', 'settings'],
+    demoWorkflowStatus: 'Draft',
+    dashboardTitle: 'Sales Command',
+    dashboardDescription: 'Agent order pressure, regional demand, and sales approval exposure.',
+    dashboardKpis: [
+      {
+        label: 'Agent orders',
+        value: 34,
+        suffix: '',
+        trend: '12 high priority',
+        detail: 'Across 8 active regions',
+        tone: 'cyan',
+      },
+      {
+        label: 'Sales gate',
+        value: 5,
+        suffix: '',
+        trend: 'Need decision',
+        detail: 'Draft orders awaiting review',
+        tone: 'amber',
+      },
+      {
+        label: 'Top region',
+        value: 4200,
+        suffix: ' tons',
+        trend: 'Khartoum +12%',
+        detail: 'Highest June regional volume',
+        tone: 'gold',
+      },
+      {
+        label: 'Strategic agents',
+        value: 18,
+        suffix: '',
+        trend: '98.5% fill',
+        detail: 'Priority commercial accounts',
+        tone: 'emerald',
+      },
+      {
+        label: 'Closed orders',
+        value: 188,
+        suffix: '',
+        trend: '+19 this week',
+        detail: 'June commercial throughput',
+        tone: 'green',
+      },
+    ],
+    dashboardActions: [
+      ['Sales gate', '5 orders', 'Draft orders need approval'],
+      ['Agent risk', '$128k', 'Al Baraka exposure in queue'],
+      ['Allocation', 'Kassala tight', 'DC reserve replenishes in 36h'],
+    ],
+    approvalNote: 'Sales can approve draft demand before finance review.',
+    actionLabel: 'Approve sales gate',
+    actionHelp: 'Sales can advance Draft orders to Sales Approved.',
+    canAdvanceWorkflow: true,
+    canVerifyOtp: false,
+    canSetDispatchStatus: false,
+  },
+  Accountant: {
+    role: 'Accountant',
+    sessionUser: 'Omar Finance',
+    sessionLabel: 'Finance control',
+    focus: 'Credit exposure, receipts, and accountant approval',
+    dataScope: 'Payment-risk orders and commercial reports',
+    landingScreen: 'orders',
+    accessibleScreens: ['dashboard', 'orders', 'reports', 'settings'],
+    demoWorkflowStatus: 'Sales Approved',
+    dashboardTitle: 'Finance Control',
+    dashboardDescription: 'Credit exposure, payment clearance, and release-order financial gates.',
+    dashboardKpis: [
+      {
+        label: 'Credit exposure',
+        value: 361000,
+        suffix: ' USD',
+        trend: '$128k oldest',
+        detail: 'Pending accountant controls',
+        tone: 'amber',
+      },
+      {
+        label: 'Payment reviews',
+        value: 4,
+        suffix: '',
+        trend: '2 urgent',
+        detail: 'Agents outside auto-clearance',
+        tone: 'gold',
+      },
+      {
+        label: 'Cleared today',
+        value: 6,
+        suffix: '',
+        trend: '$512k released',
+        detail: 'Orders moved to release control',
+        tone: 'emerald',
+      },
+      {
+        label: 'Gross margin',
+        value: 207,
+        suffix: ' bp',
+        trend: '20.7%',
+        detail: 'June blended margin',
+        tone: 'cyan',
+      },
+      {
+        label: 'Receipts due',
+        value: 9,
+        suffix: '',
+        trend: 'Before 18:00',
+        detail: 'Finance desk follow-up',
+        tone: 'green',
+      },
+    ],
+    dashboardActions: [
+      ['Credit hold', '$128k', 'Al Baraka needs confirmation'],
+      ['Release value', '$361k', 'Controls pending in queue'],
+      ['Receipts', '9 due', 'Close before dispatch handoff'],
+    ],
+    approvalNote: 'Finance must clear credit before release order generation.',
+    actionLabel: 'Approve credit gate',
+    actionHelp: 'Accountant can advance Sales Approved orders to Accountant Approved.',
+    canAdvanceWorkflow: true,
+    canVerifyOtp: false,
+    canSetDispatchStatus: false,
+  },
+  'Warehouse Keeper': {
+    role: 'Warehouse Keeper',
+    sessionUser: 'Sami Gate',
+    sessionLabel: 'Warehouse custody',
+    focus: 'Inventory custody, loading gates, and OTP-secured dispatch',
+    dataScope: 'Warehouse stock, release loading, and gate ledger',
+    landingScreen: 'warehouse',
+    accessibleScreens: ['dashboard', 'intake', 'milling', 'warehouse', 'dispatch', 'settings'],
+    demoWorkflowStatus: 'Accountant Approved',
+    dashboardTitle: 'Warehouse Control',
+    dashboardDescription: 'Flour stock, outbound pressure, gate readiness, and custody exceptions.',
+    dashboardKpis: [
+      {
+        label: 'Ready flour',
+        value: 7000,
+        suffix: ' tons',
+        trend: '18 days cover',
+        detail: 'Available for warehouse release',
+        tone: 'emerald',
+      },
+      {
+        label: 'Packed bags',
+        value: 127200,
+        suffix: '',
+        trend: '50kg and 25kg',
+        detail: 'Across central warehouses',
+        tone: 'cyan',
+      },
+      {
+        label: 'Gate queue',
+        value: 7,
+        suffix: '',
+        trend: 'Next slot 18:20',
+        detail: 'Trucks in staging lanes',
+        tone: 'amber',
+      },
+      {
+        label: 'OTP releases',
+        value: 18,
+        suffix: '',
+        trend: '99.2% matched',
+        detail: 'Secured dispatches today',
+        tone: 'green',
+      },
+      {
+        label: 'Stock alerts',
+        value: 3,
+        suffix: '',
+        trend: '1 high',
+        detail: 'Gedaref below target',
+        tone: 'gold',
+      },
+    ],
+    dashboardActions: [
+      ['Gate release', 'RO-7742', 'Awaiting OTP at gate 3'],
+      ['Outbound pressure', '7 trucks', 'Omdurman queue before 21:00'],
+      ['Replenish', 'Gedaref', '610t against 900t floor'],
+    ],
+    approvalNote: 'Warehouse can generate release orders and complete gate custody.',
+    actionLabel: 'Generate release order',
+    actionHelp: 'Warehouse can move Accountant Approved orders into release control.',
+    canAdvanceWorkflow: true,
+    canVerifyOtp: true,
+    canSetDispatchStatus: true,
+  },
+  Agent: {
+    role: 'Agent',
+    sessionUser: 'Faisal Agent',
+    sessionLabel: 'Agent portal',
+    focus: 'Own allocation, OTP handoff, and delivery status',
+    dataScope: 'Al Baraka Trading orders only',
+    landingScreen: 'orders',
+    accessibleScreens: ['dashboard', 'orders', 'dispatch', 'settings'],
+    demoWorkflowStatus: 'Release Order Generated',
+    dashboardTitle: 'Agent Portal',
+    dashboardDescription: 'Al Baraka Trading allocation, release status, OTP handoff, and delivery visibility.',
+    dashboardKpis: [
+      {
+        label: 'My allocation',
+        value: 320,
+        suffix: ' tons',
+        trend: 'RO-7742',
+        detail: 'Premium bakery flour',
+        tone: 'gold',
+      },
+      {
+        label: 'Order value',
+        value: 214000,
+        suffix: ' USD',
+        trend: 'Within limit',
+        detail: 'Commercial credit cleared',
+        tone: 'emerald',
+      },
+      {
+        label: 'OTP status',
+        value: 1,
+        suffix: ' pending',
+        trend: 'Gate 3',
+        detail: 'Agent code required for truck release',
+        tone: 'amber',
+      },
+      {
+        label: 'Truck ETA',
+        value: 52,
+        suffix: ' min',
+        trend: 'SD-7-4421',
+        detail: 'Omdurman Hub to Khartoum North',
+        tone: 'cyan',
+      },
+      {
+        label: 'Open orders',
+        value: 1,
+        suffix: '',
+        trend: 'No blockers',
+        detail: 'Al Baraka active queue',
+        tone: 'green',
+      },
+    ],
+    dashboardActions: [
+      ['Current order', 'ORD-8814', 'Release order generated'],
+      ['OTP handoff', '482916', 'Demo code ready for gate scan'],
+      ['Delivery', '52 min', 'Truck SD-7-4421 en route'],
+    ],
+    approvalNote: 'Agent can submit OTP and monitor own release only.',
+    actionLabel: 'Agent read only',
+    actionHelp: 'Agents cannot approve orders; they can provide OTP and track delivery.',
+    canAdvanceWorkflow: false,
+    canVerifyOtp: true,
+    canSetDispatchStatus: false,
+    ownedAgent: 'Al Baraka Trading',
+  },
+}
+
+export function getRoleProfile(role: Role) {
+  return roleProfiles[role]
+}
+
+export function canRoleAccessScreen(role: Role, screen: ScreenId) {
+  return roleProfiles[role].accessibleScreens.includes(screen)
+}
+
 export const flowNodes = [
   {
     id: 'vessel',

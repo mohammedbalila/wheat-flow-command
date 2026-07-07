@@ -12,7 +12,15 @@ import {
 } from 'lucide-react'
 import { AppShell } from './components/AppShell'
 import type { NavItem } from './components/Sidebar'
-import { orderStages, type OrderStatus, type Role, type ScreenId } from './data/mock'
+import {
+  canRoleAccessScreen,
+  getRoleProfile,
+  orderStages,
+  roles,
+  type OrderStatus,
+  type Role,
+  type ScreenId,
+} from './data/mock'
 import { appPath, parseAppRoute } from './lib/routes'
 import { copy, type Language } from './lib/i18n'
 import { AgentsDistributionCenters } from './screens/AgentsDistributionCenters'
@@ -25,27 +33,45 @@ import { SettingsRbac } from './screens/SettingsRbac'
 import { VesselSiloIntake } from './screens/VesselSiloIntake'
 import { WarehouseInventory } from './screens/WarehouseInventory'
 
+function getInitialRole(): Role {
+  const storedRole = window.localStorage.getItem('wheatflow-role') as Role | null
+  if (storedRole && roles.some((item) => item.role === storedRole)) {
+    return storedRole
+  }
+
+  return 'CEO'
+}
+
 function App() {
   const initialRoute = parseAppRoute(window.location.pathname)
   const [activeScreen, setActiveScreen] = useState<ScreenId>(initialRoute.screen)
   const [language, setLanguage] = useState<Language>(initialRoute.language)
-  const [role, setRole] = useState<Role>('CEO')
-  const [workflowStatus, setWorkflowStatus] = useState<OrderStatus>('Accountant Approved')
+  const [role, setRole] = useState<Role>(getInitialRole)
+  const [workflowStatus, setWorkflowStatus] = useState<OrderStatus>(() => getRoleProfile(getInitialRole()).demoWorkflowStatus)
   const [otpVerified, setOtpVerified] = useState(false)
+  const roleProfile = useMemo(() => getRoleProfile(role), [role])
 
   const navItems = useMemo<NavItem[]>(
-    () => [
-      { id: 'dashboard', label: copy[language].nav.dashboard, icon: LayoutDashboard },
-      { id: 'intake', label: copy[language].nav.intake, icon: Ship },
-      { id: 'milling', label: copy[language].nav.milling, icon: Factory },
-      { id: 'warehouse', label: copy[language].nav.warehouse, icon: Warehouse },
-      { id: 'orders', label: copy[language].nav.orders, icon: ShieldCheck },
-      { id: 'dispatch', label: copy[language].nav.dispatch, icon: Truck },
-      { id: 'agents', label: copy[language].nav.agents, icon: UsersRound },
-      { id: 'reports', label: copy[language].nav.reports, icon: ChartPie },
-      { id: 'settings', label: copy[language].nav.settings, icon: Settings },
-    ],
-    [language],
+    () => {
+      const baseItems: NavItem[] = [
+        { id: 'dashboard', label: copy[language].nav.dashboard, icon: LayoutDashboard },
+        { id: 'intake', label: copy[language].nav.intake, icon: Ship },
+        { id: 'milling', label: copy[language].nav.milling, icon: Factory },
+        { id: 'warehouse', label: copy[language].nav.warehouse, icon: Warehouse },
+        { id: 'orders', label: copy[language].nav.orders, icon: ShieldCheck },
+        { id: 'dispatch', label: copy[language].nav.dispatch, icon: Truck },
+        { id: 'agents', label: copy[language].nav.agents, icon: UsersRound },
+        { id: 'reports', label: copy[language].nav.reports, icon: ChartPie },
+        { id: 'settings', label: copy[language].nav.settings, icon: Settings },
+      ]
+
+      return baseItems.map((item) => ({
+        ...item,
+        locked: !roleProfile.accessibleScreens.includes(item.id),
+        accessLabel: `${role} cannot access this module`,
+      }))
+    },
+    [language, role, roleProfile],
   )
 
   useEffect(() => {
@@ -62,6 +88,16 @@ function App() {
   }, [language])
 
   useEffect(() => {
+    window.localStorage.setItem('wheatflow-role', role)
+  }, [role])
+
+  useEffect(() => {
+    if (!canRoleAccessScreen(role, activeScreen)) {
+      navigate(roleProfile.landingScreen, language, role)
+    }
+  }, [activeScreen, language, role, roleProfile.landingScreen])
+
+  useEffect(() => {
     function handlePopState() {
       const nextRoute = parseAppRoute(window.location.pathname)
       setActiveScreen(nextRoute.screen)
@@ -72,7 +108,11 @@ function App() {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
-  function navigate(screen: ScreenId, nextLanguage = language) {
+  function navigate(screen: ScreenId, nextLanguage = language, accessRole = role) {
+    if (!canRoleAccessScreen(accessRole, screen)) {
+      return
+    }
+
     setActiveScreen(screen)
     setLanguage(nextLanguage)
     window.history.pushState(null, '', appPath(nextLanguage, screen))
@@ -80,6 +120,17 @@ function App() {
 
   function handleLanguageChange(nextLanguage: Language) {
     navigate(activeScreen, nextLanguage)
+  }
+
+  function handleRoleChange(nextRole: Role) {
+    const nextProfile = getRoleProfile(nextRole)
+    setRole(nextRole)
+    setWorkflowStatus(nextProfile.demoWorkflowStatus)
+    setOtpVerified(false)
+
+    if (!canRoleAccessScreen(nextRole, activeScreen)) {
+      navigate(nextProfile.landingScreen, language, nextRole)
+    }
   }
 
   function advanceWorkflow() {
@@ -99,18 +150,25 @@ function App() {
   const screen = (() => {
     switch (activeScreen) {
       case 'dashboard':
-        return <ExecutiveDashboard workflowStatus={workflowStatus} onOpenScreen={navigate} />
+        return <ExecutiveDashboard roleProfile={roleProfile} workflowStatus={workflowStatus} onOpenScreen={navigate} />
       case 'intake':
         return <VesselSiloIntake />
       case 'milling':
         return <MillingOperations />
       case 'warehouse':
-        return <WarehouseInventory />
+        return <WarehouseInventory roleProfile={roleProfile} />
       case 'orders':
-        return <OrdersApprovalWorkflow workflowStatus={workflowStatus} onAdvance={advanceWorkflow} />
+        return (
+          <OrdersApprovalWorkflow
+            roleProfile={roleProfile}
+            workflowStatus={workflowStatus}
+            onAdvance={advanceWorkflow}
+          />
+        )
       case 'dispatch':
         return (
           <DispatchOtp
+            roleProfile={roleProfile}
             workflowStatus={workflowStatus}
             otpVerified={otpVerified}
             onVerifyOtp={handleOtpVerified}
@@ -118,11 +176,11 @@ function App() {
           />
         )
       case 'agents':
-        return <AgentsDistributionCenters />
+        return <AgentsDistributionCenters roleProfile={roleProfile} />
       case 'reports':
-        return <CommercialReports />
+        return <CommercialReports roleProfile={roleProfile} />
       case 'settings':
-        return <SettingsRbac role={role} onRoleChange={setRole} />
+        return <SettingsRbac role={role} onRoleChange={handleRoleChange} />
       default:
         return null
     }
@@ -134,7 +192,8 @@ function App() {
       activeScreen={activeScreen}
       onScreenChange={navigate}
       role={role}
-      onRoleChange={setRole}
+      onRoleChange={handleRoleChange}
+      profile={roleProfile}
       language={language}
       onLanguageChange={handleLanguageChange}
     >

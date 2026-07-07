@@ -3,7 +3,7 @@ import { AgentLeaderboard } from '../components/AgentLeaderboard'
 import { DataTable, type DataTableColumn } from '../components/DataTable'
 import { StatusBadge } from '../components/StatusBadge'
 import { MetricTile, Panel, SectionHeader, Screen } from '../components/design-system'
-import { agents } from '../data/mock'
+import { agents, type RoleProfile } from '../data/mock'
 import { formatCurrency, formatNumber } from '../lib/utils'
 
 type Agent = (typeof agents)[number]
@@ -47,7 +47,7 @@ const columns: DataTableColumn<Agent>[] = [
   },
 ]
 
-export function AgentsDistributionCenters() {
+export function AgentsDistributionCenters({ roleProfile }: { roleProfile: RoleProfile }) {
   return (
     <Screen>
       <section className="grid shrink-0 gap-4 md:grid-cols-4">
@@ -63,7 +63,10 @@ export function AgentsDistributionCenters() {
 
       <section className="grid min-h-0 flex-1 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(280px,0.32fr)]">
         <Panel className="min-h-0">
-          <SectionHeader title="Agents & Distribution Centers" description="Agent scorecards, regional coverage, and allocation pressure." />
+          <SectionHeader
+            title={`${roleProfile.role} Agent Portfolio`}
+            description={roleProfile.role === 'Sales Manager' ? roleProfile.focus : 'Agent scorecards, regional coverage, and allocation pressure.'}
+          />
           <div className="mt-4 max-h-[520px] overflow-y-auto">
             <DataTable columns={columns} rows={agents} getRowId={(row) => row.id} density="compact" />
           </div>

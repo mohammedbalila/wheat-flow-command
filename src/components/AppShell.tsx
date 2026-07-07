@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import type { ReactNode } from 'react'
-import type { Role, ScreenId } from '../data/mock'
+import type { Role, RoleProfile, ScreenId } from '../data/mock'
 import type { Language } from '../lib/i18n'
 import { Sidebar, type NavItem } from './Sidebar'
 import { Topbar } from './Topbar'
@@ -11,6 +11,7 @@ export function AppShell({
   onScreenChange,
   role,
   onRoleChange,
+  profile,
   language,
   onLanguageChange,
   children,
@@ -20,6 +21,7 @@ export function AppShell({
   onScreenChange: (screen: ScreenId) => void
   role: Role
   onRoleChange: (role: Role) => void
+  profile: RoleProfile
   language: Language
   onLanguageChange: (language: Language) => void
   children: ReactNode
@@ -37,9 +39,21 @@ export function AppShell({
         <Topbar
           role={role}
           onRoleChange={onRoleChange}
+          profile={profile}
           language={language}
           onLanguageChange={onLanguageChange}
         />
+        <div className="border-b border-slate-200/70 bg-white/75 px-4 py-2.5 backdrop-blur md:px-6 lg:px-8">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-semibold uppercase tracking-[0.1em] text-slate-500">
+              Role scope
+            </span>
+            <span className="font-semibold text-slate-950">{profile.role}</span>
+            <span className="max-w-3xl text-slate-600">{profile.focus}</span>
+            <span className="text-slate-400">/</span>
+            <span className="font-medium text-slate-500">{profile.dataScope}</span>
+          </div>
+        </div>
         <main className="px-4 py-4 md:px-6 lg:px-8">
           <AnimatePresence mode="wait">
             <motion.div

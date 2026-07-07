@@ -3,7 +3,7 @@ import { DataTable, type DataTableColumn } from '../components/DataTable'
 import { InventoryCard } from '../components/InventoryCard'
 import { StatusBadge } from '../components/StatusBadge'
 import { MetricTile, Panel, SectionHeader, Screen } from '../components/design-system'
-import { inventoryAlerts, warehouseInventory } from '../data/mock'
+import { inventoryAlerts, warehouseInventory, type RoleProfile } from '../data/mock'
 import { formatNumber } from '../lib/utils'
 
 type WarehouseRow = (typeof warehouseInventory)[number]
@@ -46,7 +46,7 @@ const columns: DataTableColumn<WarehouseRow>[] = [
   },
 ]
 
-export function WarehouseInventory() {
+export function WarehouseInventory({ roleProfile }: { roleProfile: RoleProfile }) {
   return (
     <Screen>
       <section className="grid shrink-0 gap-4 md:grid-cols-4">
@@ -77,7 +77,10 @@ export function WarehouseInventory() {
 
       <section className="grid min-h-0 flex-1 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(260px,0.32fr)]">
         <Panel className="min-h-0">
-          <SectionHeader title="Warehouse Inventory" description="Stock by hub, bag count, and allocation state." />
+          <SectionHeader
+            title={`${roleProfile.role} Inventory View`}
+            description={roleProfile.role === 'Warehouse Keeper' ? roleProfile.focus : 'Stock by hub, bag count, and allocation state.'}
+          />
           <div className="mt-4 max-h-[260px] overflow-y-auto">
             <DataTable columns={columns} rows={warehouseInventory} getRowId={(row) => row.id} density="compact" />
           </div>

@@ -10,11 +10,11 @@ import {
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import {
-  executiveKpis,
   flowNodes,
   inventoryAlerts,
   liveUpdates,
   type OrderStatus,
+  type RoleProfile,
   type ScreenId,
 } from '../data/mock'
 import { FlowMap } from '../components/FlowMap'
@@ -25,23 +25,19 @@ import { IconTile, MetricTile, PageHeader, Panel, Screen, SectionHeader, SubPane
 const kpiIcons = [Wheat, PackageCheck, ClipboardCheck, Gauge, Truck]
 
 export function ExecutiveDashboard({
+  roleProfile,
   workflowStatus,
   onOpenScreen,
 }: {
+  roleProfile: RoleProfile
   workflowStatus: OrderStatus
   onOpenScreen: (screen: ScreenId) => void
 }) {
-  const executiveActions = [
-    ['Decision needed', '9 approvals', 'Average age 42 minutes'],
-    ['Operational risk', '3 alerts', 'Gedaref stock below target'],
-    ['Cash exposure', '$361k', 'Credit checks in release queue'],
-  ]
-
   return (
     <Screen className="gap-3">
       <PageHeader
-        title="Executive Dashboard"
-        description="Real-time overview of wheat-to-flour supply chain operations across Sudan."
+        title={roleProfile.dashboardTitle}
+        description={roleProfile.dashboardDescription}
         action={
           <div className="grid w-full gap-3 sm:grid-cols-3 xl:w-[520px]">
             {[
@@ -62,7 +58,7 @@ export function ExecutiveDashboard({
       />
 
       <section className="grid shrink-0 gap-4 md:grid-cols-2 xl:grid-cols-5">
-        {executiveKpis.map((kpi, index) => (
+        {roleProfile.dashboardKpis.map((kpi, index) => (
           <StatCard key={kpi.label} {...kpi} icon={kpiIcons[index]} />
         ))}
       </section>
@@ -71,9 +67,9 @@ export function ExecutiveDashboard({
 
       <section className="grid min-h-0 flex-1 items-stretch gap-4 xl:grid-cols-[minmax(0,1fr)_300px_300px]">
         <Panel className="flex min-h-0 min-w-0 flex-col p-3">
-          <SectionHeader title="Executive Decisions" description="Board-level risks and required actions." className="mb-2" />
+          <SectionHeader title={`${roleProfile.role} Decisions`} description={roleProfile.focus} className="mb-2" />
           <div className="grid gap-2.5 md:grid-cols-3">
-            {executiveActions.map(([label, value, detail]) => (
+            {roleProfile.dashboardActions.map(([label, value, detail]) => (
               <SubPanel key={label} className="p-2">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">{label}</p>
                 <p className="mt-1.5 text-base font-semibold text-slate-950">{value}</p>
@@ -83,9 +79,9 @@ export function ExecutiveDashboard({
           </div>
           <div className="mt-auto grid gap-2 border-t border-slate-200 pt-3 text-xs sm:grid-cols-3">
             {[
-              ['SLA', '6 orders under 45m'],
-              ['Owner', 'Commercial control'],
-              ['Impact', '$361k held risk'],
+              ['Scope', roleProfile.dataScope],
+              ['Owner', roleProfile.sessionLabel],
+              ['Gate', workflowStatus],
             ].map(([label, value]) => (
               <div key={label}>
                 <p className="font-semibold uppercase tracking-[0.1em] text-slate-500">{label}</p>
@@ -105,7 +101,7 @@ export function ExecutiveDashboard({
           <div className="rounded-[8px] border border-emerald-200 bg-emerald-50 p-2">
             <p className="text-xs font-semibold uppercase tracking-[0.1em] text-emerald-700">Current gate</p>
             <p className="mt-1 text-sm font-semibold text-slate-950">{workflowStatus}</p>
-            <p className="mt-1 line-clamp-2 text-xs text-emerald-700/75">Commercial controls cleared for release generation.</p>
+            <p className="mt-1 line-clamp-2 text-xs text-emerald-700/75">{roleProfile.approvalNote}</p>
           </div>
         </Panel>
 

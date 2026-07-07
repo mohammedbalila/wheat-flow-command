@@ -11,7 +11,7 @@ import {
   YAxis,
 } from 'recharts'
 import { ChartPie, Download, FileText, Landmark } from 'lucide-react'
-import { commercialTrend, productMix, regionSales } from '../data/mock'
+import { commercialTrend, productMix, regionSales, type RoleProfile } from '../data/mock'
 import { DataTable, type DataTableColumn } from '../components/DataTable'
 import { MetricTile, Panel, SectionHeader, Screen } from '../components/design-system'
 import { formatCurrency, formatNumber } from '../lib/utils'
@@ -26,7 +26,7 @@ const columns: DataTableColumn<RegionRow>[] = [
   { key: 'growth', header: 'Growth', align: 'right', render: (row) => `${row.growth}%` },
 ]
 
-export function CommercialReports() {
+export function CommercialReports({ roleProfile }: { roleProfile: RoleProfile }) {
   return (
     <Screen>
       <section className="grid shrink-0 gap-4 md:grid-cols-4">
@@ -43,7 +43,10 @@ export function CommercialReports() {
       <section className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(310px,0.34fr)]">
         <div className="grid min-h-0 content-start gap-4">
         <Panel className="min-h-0">
-          <SectionHeader title="Commercial Reports" description="Revenue, margin, regional movement, and product mix." />
+          <SectionHeader
+            title={`${roleProfile.role} Commercial Reports`}
+            description={roleProfile.role === 'CEO' ? 'Revenue, margin, regional movement, and product mix.' : roleProfile.dataScope}
+          />
           <div className="mt-3 h-52">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={commercialTrend} margin={{ left: -18, right: 12, top: 10, bottom: 0 }}>

@@ -3,7 +3,7 @@ import { DataTable, type DataTableColumn } from '../components/DataTable'
 import { OtpVerificationPanel } from '../components/OtpVerificationPanel'
 import { StatusBadge } from '../components/StatusBadge'
 import { ActionButton, MetricTile, Panel, SectionHeader, Screen, SubPanel } from '../components/design-system'
-import { dispatches, type OrderStatus } from '../data/mock'
+import { dispatches, type OrderStatus, type RoleProfile } from '../data/mock'
 import { formatNumber } from '../lib/utils'
 
 type DispatchRow = (typeof dispatches)[number]
@@ -50,11 +50,13 @@ const columns: DataTableColumn<DispatchRow>[] = [
 ]
 
 export function DispatchOtp({
+  roleProfile,
   workflowStatus,
   otpVerified,
   onVerifyOtp,
   onSetStatus,
 }: {
+  roleProfile: RoleProfile
   workflowStatus: OrderStatus
   otpVerified: boolean
   onVerifyOtp: () => void
@@ -65,11 +67,15 @@ export function DispatchOtp({
     { gate: 'Gate 1', release: 'RO-7736', load: '180t', state: 'Dispatched' },
     { gate: 'Gate 4', release: 'RO-7729', load: '240t', state: 'Completed' },
   ]
-  const dispatchRows = dispatches.map((dispatch) => (
-    dispatch.id === 'DSP-4428'
-      ? { ...dispatch, status: otpVerified ? 'OTP Verified' : dispatch.status }
-      : dispatch
-  ))
+  const dispatchRows = dispatches
+    .filter((dispatch) => (
+      roleProfile.role === 'Agent' ? dispatch.agent === roleProfile.ownedAgent : true
+    ))
+    .map((dispatch) => (
+      dispatch.id === 'DSP-4428'
+        ? { ...dispatch, status: otpVerified ? 'OTP Verified' : dispatch.status }
+        : dispatch
+    ))
   const auditTrail = [
     ['17:44', 'Release RO-7742 generated'],
     ['17:48', 'Agent OTP issued to Al Baraka Trading'],
@@ -80,7 +86,7 @@ export function DispatchOtp({
     <Screen>
       <section className="grid shrink-0 gap-4 md:grid-cols-4">
         {[
-          ['Dispatches today', '18', Truck],
+          ['Visible releases', String(dispatchRows.length), Truck],
           ['OTP match rate', '99.2%', CheckCircle2],
           ['Gates active', '4', MapPin],
           ['Avg loading', '38m', Route],
@@ -91,7 +97,12 @@ export function DispatchOtp({
 
       <section className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[410px_minmax(0,1fr)]">
         <div className="grid min-h-0 content-start gap-4">
-          <OtpVerificationPanel verified={otpVerified} onVerify={onVerifyOtp} />
+          <OtpVerificationPanel
+            verified={otpVerified}
+            onVerify={onVerifyOtp}
+            disabled={!roleProfile.canVerifyOtp}
+            disabledReason={`${roleProfile.role} can view OTP status but cannot verify this release.`}
+          />
           <Panel className="min-h-0">
             <SectionHeader title="Gate Readiness" description="Live gate queue and loading control." />
             <div className="grid gap-2.5">
@@ -125,16 +136,24 @@ export function DispatchOtp({
         <div className="grid min-h-0 content-start gap-4">
           <Panel className="min-h-0">
             <SectionHeader
-              title="Dispatch & OTP Verification"
-              description="Release orders, truck gates, and delivery state."
+              title={`${roleProfile.role} Dispatch View`}
+              description={roleProfile.canSetDispatchStatus ? 'Release orders, truck gates, and delivery state.' : roleProfile.actionHelp}
               action={<StatusBadge status={workflowStatus} />}
             />
             <DataTable columns={columns} rows={dispatchRows} getRowId={(row) => row.id} density="compact" />
             <div className="mt-3 flex flex-wrap gap-3">
-              <ActionButton variant="secondary" onClick={() => onSetStatus('Dispatched')}>
+              <ActionButton
+                variant="secondary"
+                disabled={!roleProfile.canSetDispatchStatus}
+                onClick={() => onSetStatus('Dispatched')}
+              >
                 Mark dispatched
               </ActionButton>
-              <ActionButton className="bg-emerald-700 hover:bg-emerald-600" onClick={() => onSetStatus('Completed')}>
+              <ActionButton
+                className="bg-emerald-700 hover:bg-emerald-600"
+                disabled={!roleProfile.canSetDispatchStatus}
+                onClick={() => onSetStatus('Completed')}
+              >
                 Complete delivery
               </ActionButton>
             </div>

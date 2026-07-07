@@ -96,12 +96,14 @@ export function ActionButton({
   className,
   onClick,
   type = 'button',
+  disabled = false,
 }: {
   children: ReactNode
   variant?: 'primary' | 'secondary' | 'ghost'
   className?: string
   onClick?: () => void
   type?: 'button' | 'submit'
+  disabled?: boolean
 }) {
   const variants = {
     primary: 'bg-[#0b2d4d] text-white hover:bg-[#103a60]',
@@ -113,9 +115,11 @@ export function ActionButton({
     <button
       type={type}
       onClick={onClick}
+      disabled={disabled}
       className={cn(
         'inline-flex h-10 items-center justify-center gap-2 rounded-[8px] px-4 text-sm font-semibold transition',
         variants[variant],
+        disabled && 'cursor-not-allowed opacity-45',
         className,
       )}
     >

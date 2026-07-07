@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
-import { Wheat } from 'lucide-react'
+import { LockKeyhole, Wheat } from 'lucide-react'
 import type { Role, ScreenId } from '../data/mock'
 import { copy, type Language } from '../lib/i18n'
 import { cn } from '../lib/utils'
@@ -8,6 +8,8 @@ export type NavItem = {
   id: ScreenId
   label: string
   icon: LucideIcon
+  locked?: boolean
+  accessLabel?: string
 }
 
 export function Sidebar({
@@ -47,19 +49,27 @@ export function Sidebar({
               <button
                 key={item.id}
                 type="button"
-                onClick={() => onScreenChange(item.id)}
-                title={item.label}
+                onClick={() => {
+                  if (!item.locked) {
+                    onScreenChange(item.id)
+                  }
+                }}
+                title={item.locked ? `${item.label} - ${item.accessLabel ?? 'Restricted for this role'}` : item.label}
+                aria-disabled={item.locked}
                 className={cn(
                   'inline-flex min-w-max items-center gap-3 rounded-[8px] px-3 py-2.5 text-sm font-semibold transition lg:w-full lg:min-w-0 lg:items-start',
-                  active
+                  item.locked
+                    ? 'cursor-not-allowed text-white/35 hover:bg-transparent'
+                    : active
                     ? 'bg-white text-[#062849] shadow-[0_14px_30px_rgba(0,0,0,.18)]'
                     : 'text-white/70 hover:bg-white/10 hover:text-white',
                 )}
               >
                 <Icon className="mt-0.5 size-4 shrink-0" />
-                <span className="whitespace-nowrap text-left leading-5 lg:min-w-0 lg:whitespace-normal">
+                <span className="min-w-0 flex-1 whitespace-nowrap text-left leading-5 lg:whitespace-normal">
                   {item.label}
                 </span>
+                {item.locked ? <LockKeyhole className="mt-0.5 size-3.5 shrink-0 text-white/35" /> : null}
               </button>
             )
           })}

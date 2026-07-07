@@ -3,7 +3,7 @@ import { ApprovalTimeline } from '../components/ApprovalTimeline'
 import { DataTable, type DataTableColumn } from '../components/DataTable'
 import { StatusBadge } from '../components/StatusBadge'
 import { ActionButton, MetricTile, Panel, SectionHeader, Screen, SubPanel } from '../components/design-system'
-import { orders, type OrderStatus } from '../data/mock'
+import { orderStages, orders, type OrderStatus, type RoleProfile } from '../data/mock'
 import { formatCurrency, formatNumber } from '../lib/utils'
 
 type Order = (typeof orders)[number]
@@ -50,27 +50,72 @@ const columns: DataTableColumn<Order>[] = [
 ]
 
 export function OrdersApprovalWorkflow({
+  roleProfile,
   workflowStatus,
   onAdvance,
 }: {
+  roleProfile: RoleProfile
   workflowStatus: OrderStatus
   onAdvance: () => void
 }) {
-  const demoOrder = orders[0]
+  const visibleOrders = orders.filter((order) => {
+    if (roleProfile.role === 'CEO') {
+      return true
+    }
+
+    if (roleProfile.role === 'Sales Manager') {
+      return ['Draft', 'Sales Approved', 'Accountant Approved'].includes(order.status)
+    }
+
+    if (roleProfile.role === 'Accountant') {
+      return order.credit === 'Payment review' || ['Sales Approved', 'Accountant Approved'].includes(order.status)
+    }
+
+    if (roleProfile.role === 'Agent') {
+      return order.agent === roleProfile.ownedAgent
+    }
+
+    return ['Release Order Generated', 'Accountant Approved'].includes(order.status)
+  })
+  const demoOrder = visibleOrders[0] ?? orders[0]
+  const activeOrderValue = visibleOrders.reduce((total, order) => total + order.value, 0)
+  const canAdvanceCurrentStep = (() => {
+    if (!roleProfile.canAdvanceWorkflow) {
+      return false
+    }
+
+    if (roleProfile.role === 'CEO') {
+      return workflowStatus !== 'Completed'
+    }
+
+    if (roleProfile.role === 'Sales Manager') {
+      return workflowStatus === 'Draft'
+    }
+
+    if (roleProfile.role === 'Accountant') {
+      return workflowStatus === 'Sales Approved'
+    }
+
+    if (roleProfile.role === 'Warehouse Keeper') {
+      return workflowStatus === 'Accountant Approved'
+    }
+
+    return false
+  })()
   const decisionQueue = [
-    ['Credit hold risk', '$128k exposure', 'Medium'],
-    ['Release ready', '6 orders cleared', 'Low'],
-    ['Oldest approval', '42 minutes', 'High'],
+    ['Role scope', `${visibleOrders.length} orders`, 'Low'],
+    ['Exposure in view', formatCurrency(activeOrderValue), activeOrderValue > 250000 ? 'Medium' : 'Low'],
+    ['Current authority', canAdvanceCurrentStep ? 'Action available' : 'Read only', canAdvanceCurrentStep ? 'Low' : 'Medium'],
   ]
 
   return (
     <Screen>
       <section className="grid shrink-0 gap-4 md:grid-cols-4">
         {[
-          ['Active orders', '34', ReceiptText],
-          ['Pending approvals', '9', ShieldCheck],
-          ['Credit exposure', '$361k', CircleDollarSign],
-          ['Release ready', '6', BadgeCheck],
+          ['Visible orders', String(visibleOrders.length), ReceiptText],
+          ['Pending approvals', String(visibleOrders.filter((order) => order.status !== 'Completed').length), ShieldCheck],
+          ['Exposure in scope', formatCurrency(activeOrderValue), CircleDollarSign],
+          ['Current gate', `${orderStages.indexOf(workflowStatus) + 1}/7`, BadgeCheck],
         ].map(([label, value, Icon]) => (
           <MetricTile key={label as string} label={label as string} value={value as string} icon={Icon} tone="copper" />
         ))}
@@ -79,16 +124,16 @@ export function OrdersApprovalWorkflow({
       <section className="grid min-h-0 flex-1 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(330px,0.34fr)]">
         <Panel className="min-h-0">
           <SectionHeader
-            title="Orders & Approval Workflow"
-            description="Draft to completed delivery with commercial controls."
+            title={`${roleProfile.role} Order Workbench`}
+            description={roleProfile.actionHelp}
             action={
-              <ActionButton onClick={onAdvance}>
-                Advance demo order
+              <ActionButton onClick={onAdvance} disabled={!canAdvanceCurrentStep}>
+                {roleProfile.actionLabel}
                 <ArrowRight className="size-4" />
               </ActionButton>
             }
           />
-          <DataTable columns={columns} rows={orders} getRowId={(row) => row.id} density="compact" />
+          <DataTable columns={columns} rows={visibleOrders} getRowId={(row) => row.id} density="compact" />
           <div className="mt-4 grid gap-3 md:grid-cols-3">
             {decisionQueue.map(([label, value, severity]) => (
               <SubPanel key={label} className="p-3">
