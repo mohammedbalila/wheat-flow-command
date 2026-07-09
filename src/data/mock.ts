@@ -8,6 +8,7 @@ export type Role =
 export type ScreenId =
   | 'dashboard'
   | 'intake'
+  | 'silos'
   | 'milling'
   | 'warehouse'
   | 'orders'
@@ -141,6 +142,7 @@ export type RoleProfile = {
 const allScreens: ScreenId[] = [
   'dashboard',
   'intake',
+  'silos',
   'milling',
   'warehouse',
   'orders',
@@ -182,7 +184,7 @@ export const roleProfiles: Record<Role, RoleProfile> = {
     focus: 'Agent demand, regional allocation, and the sales approval gate',
     dataScope: 'Agent orders, distribution centers, and sales reports',
     landingScreen: 'orders',
-    accessibleScreens: ['dashboard', 'orders', 'agents', 'reports', 'settings'],
+    accessibleScreens: ['dashboard', 'silos', 'orders', 'agents', 'reports', 'settings'],
     demoWorkflowStatus: 'Draft',
     dashboardTitle: 'Sales Command',
     dashboardDescription: 'Agent order pressure, regional demand, and sales approval exposure.',
@@ -247,7 +249,7 @@ export const roleProfiles: Record<Role, RoleProfile> = {
     focus: 'Credit exposure, receipts, and accountant approval',
     dataScope: 'Payment-risk orders and commercial reports',
     landingScreen: 'orders',
-    accessibleScreens: ['dashboard', 'orders', 'reports', 'settings'],
+    accessibleScreens: ['dashboard', 'silos', 'orders', 'reports', 'settings'],
     demoWorkflowStatus: 'Sales Approved',
     dashboardTitle: 'Finance Control',
     dashboardDescription: 'Credit exposure, payment clearance, and release-order financial gates.',
@@ -312,7 +314,7 @@ export const roleProfiles: Record<Role, RoleProfile> = {
     focus: 'Inventory custody, loading gates, and OTP-secured dispatch',
     dataScope: 'Warehouse stock, release loading, and gate ledger',
     landingScreen: 'warehouse',
-    accessibleScreens: ['dashboard', 'intake', 'milling', 'warehouse', 'dispatch', 'settings'],
+    accessibleScreens: ['dashboard', 'intake', 'silos', 'milling', 'warehouse', 'dispatch', 'settings'],
     demoWorkflowStatus: 'Accountant Approved',
     dashboardTitle: 'Warehouse Control',
     dashboardDescription: 'Flour stock, outbound pressure, gate readiness, and custody exceptions.',
@@ -461,7 +463,7 @@ export const flowNodes = [
     location: 'Terminal A / Khartoum',
     metric: '50,000t',
     status: '72% capacity',
-    screen: 'intake' as ScreenId,
+    screen: 'silos' as ScreenId,
   },
   {
     id: 'factory',

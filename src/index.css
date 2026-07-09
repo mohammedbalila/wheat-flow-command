@@ -106,3 +106,46 @@ button {
 .chart-grid path {
   stroke: transparent;
 }
+
+.silo-map-workspace:fullscreen,
+.silo-map-workspace.is-map-expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  padding: 18px;
+  background:
+    radial-gradient(circle at 74% 20%, rgba(56, 213, 255, 0.12), transparent 30rem),
+    linear-gradient(135deg, #03111f 0%, #071b2f 48%, #04111f 100%);
+}
+
+.silo-map-workspace:fullscreen .silo-map-panel,
+.silo-map-workspace.is-map-expanded .silo-map-panel {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  border-color: rgba(148, 163, 184, 0.22);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.36);
+}
+
+.silo-map-workspace:fullscreen .silo-map-body,
+.silo-map-workspace.is-map-expanded .silo-map-body {
+  min-height: 0;
+  flex: 1;
+}
+
+.silo-map-workspace:fullscreen .silo-scene-surface,
+.silo-map-workspace.is-map-expanded .silo-scene-surface {
+  height: 100%;
+  min-height: 0;
+}
+
+.silo-map-workspace:fullscreen .silo-scene-surface svg,
+.silo-map-workspace.is-map-expanded .silo-scene-surface svg {
+  height: 100%;
+  min-height: 0;
+}

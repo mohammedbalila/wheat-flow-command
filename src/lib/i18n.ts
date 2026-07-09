@@ -22,6 +22,7 @@ export const copy = {
     nav: {
       dashboard: 'Executive Dashboard',
       intake: 'Vessel & Silo Intake',
+      silos: 'Smart Silo Dashboard',
       milling: 'Milling / Factory Operations',
       warehouse: 'Warehouse Inventory',
       orders: 'Orders & Approval Workflow',
@@ -45,6 +46,7 @@ export const copy = {
     nav: {
       dashboard: 'لوحة القيادة التنفيذية',
       intake: 'استلام السفن والصوامع',
+      silos: 'لوحة الصوامع الذكية',
       milling: 'عمليات الطحن والمصانع',
       warehouse: 'مخزون المستودعات',
       orders: 'الطلبات وسير الموافقات',

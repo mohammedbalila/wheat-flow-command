@@ -4,6 +4,7 @@ import type { Language } from './i18n'
 export const routePaths: Record<ScreenId, string> = {
   dashboard: 'dashboard',
   intake: 'intake',
+  silos: 'silos',
   milling: 'milling',
   warehouse: 'warehouse',
   orders: 'orders',

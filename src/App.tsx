@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   ChartPie,
+  Database,
   Factory,
   LayoutDashboard,
   Settings,
@@ -30,6 +31,7 @@ import { ExecutiveDashboard } from './screens/ExecutiveDashboard'
 import { MillingOperations } from './screens/MillingOperations'
 import { OrdersApprovalWorkflow } from './screens/OrdersApprovalWorkflow'
 import { SettingsRbac } from './screens/SettingsRbac'
+import { SmartSiloDashboard } from './screens/SmartSiloDashboard'
 import { VesselSiloIntake } from './screens/VesselSiloIntake'
 import { WarehouseInventory } from './screens/WarehouseInventory'
 
@@ -56,6 +58,7 @@ function App() {
       const baseItems: NavItem[] = [
         { id: 'dashboard', label: copy[language].nav.dashboard, icon: LayoutDashboard },
         { id: 'intake', label: copy[language].nav.intake, icon: Ship },
+        { id: 'silos', label: copy[language].nav.silos, icon: Database },
         { id: 'milling', label: copy[language].nav.milling, icon: Factory },
         { id: 'warehouse', label: copy[language].nav.warehouse, icon: Warehouse },
         { id: 'orders', label: copy[language].nav.orders, icon: ShieldCheck },
@@ -153,6 +156,8 @@ function App() {
         return <ExecutiveDashboard roleProfile={roleProfile} workflowStatus={workflowStatus} onOpenScreen={navigate} />
       case 'intake':
         return <VesselSiloIntake />
+      case 'silos':
+        return <SmartSiloDashboard />
       case 'milling':
         return <MillingOperations />
       case 'warehouse':

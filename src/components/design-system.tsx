@@ -97,6 +97,8 @@ export function ActionButton({
   onClick,
   type = 'button',
   disabled = false,
+  ariaLabel,
+  ariaPressed,
 }: {
   children: ReactNode
   variant?: 'primary' | 'secondary' | 'ghost'
@@ -104,6 +106,8 @@ export function ActionButton({
   onClick?: () => void
   type?: 'button' | 'submit'
   disabled?: boolean
+  ariaLabel?: string
+  ariaPressed?: boolean
 }) {
   const variants = {
     primary: 'bg-[#0b2d4d] text-white hover:bg-[#103a60]',
@@ -116,6 +120,8 @@ export function ActionButton({
       type={type}
       onClick={onClick}
       disabled={disabled}
+      aria-label={ariaLabel}
+      aria-pressed={ariaPressed}
       className={cn(
         'inline-flex h-10 items-center justify-center gap-2 rounded-[8px] px-4 text-sm font-semibold transition',
         variants[variant],
